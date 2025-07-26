@@ -1,0 +1,108 @@
+#Respostas
+
+USE dml;
+
+#Questão 01
+SELECT c.nome_cantor, gravacoes_por_cantor.total AS num_gravacoes
+FROM cantor c
+JOIN (
+    SELECT cod_cantor, COUNT(*) AS total
+    FROM gravacao
+    GROUP BY cod_cantor
+) AS gravacoes_por_cantor
+ON c.cod_cantor = gravacoes_por_cantor.cod_cantor
+WHERE gravacoes_por_cantor.total = (
+    SELECT MIN(contagem)
+    FROM (
+        SELECT COUNT(*) AS contagem
+        FROM gravacao
+        GROUP BY cod_cantor
+    ) AS sub
+);
+
+
+
+#Questão 02
+SELECT c.nome_cantor, qtd_gravadoras.total_gravadoras AS num_gravadoras
+FROM cantor c
+JOIN (
+    SELECT cod_cantor, COUNT(DISTINCT cod_gravadora) AS total_gravadoras
+    FROM gravacao
+    GROUP BY cod_cantor
+) AS qtd_gravadoras
+ON c.cod_cantor = qtd_gravadoras.cod_cantor
+WHERE qtd_gravadoras.total_gravadoras = (
+    SELECT MAX(total)
+    FROM (
+        SELECT COUNT(DISTINCT cod_gravadora) AS total
+        FROM gravacao
+        GROUP BY cod_cantor
+    ) AS sub
+);
+
+
+
+#Questão 3
+SELECT c.nome_cantor, medias.media_duracao
+FROM cantor c
+JOIN (
+    SELECT g.cod_cantor, AVG(m.duracao) AS media_duracao
+    FROM gravacao g
+    JOIN musica m ON g.cod_musica = m.cod_musica
+    GROUP BY g.cod_cantor
+) AS medias
+ON c.cod_cantor = medias.cod_cantor
+WHERE medias.media_duracao = (
+    SELECT MAX(media)
+    FROM (
+        SELECT AVG(m.duracao) AS media
+        FROM gravacao g
+        JOIN musica m ON g.cod_musica = m.cod_musica
+        GROUP BY g.cod_cantor
+    ) AS sub
+);
+
+
+
+#Questão 04
+SELECT nome_cantor
+FROM cantor c
+WHERE cod_cantor NOT IN (
+    SELECT cod_cantor
+    FROM gravacao g
+    JOIN gravadora gr ON g.cod_gravadora = gr.cod_gravadora
+    WHERE gr.nome_gravadora = 'Sony'
+);
+
+
+
+#Questão 05
+SELECT c.nome_cantor AS cantor, m.titulo AS musica, g.data_gravacao
+FROM gravacao g
+JOIN musica m ON g.cod_musica = m.cod_musica
+JOIN cantor c ON g.cod_cantor = c.cod_cantor
+WHERE YEAR(g.data_gravacao) = 2004;
+
+
+
+#Questão 06
+SELECT c.nome_cantor, MAX(g.data_gravacao) AS ultima_gravacao
+FROM cantor c
+LEFT JOIN gravacao g ON c.cod_cantor = g.cod_cantor
+GROUP BY c.nome_cantor
+ORDER BY ultima_gravacao DESC;
+
+
+
+#Questão 07
+SELECT
+    p.nome_pessoa AS nome,
+    MAX(CASE WHEN f.tipo = 'R' THEN f.numero END) AS residencial,
+    MAX(CASE WHEN f.tipo = 'C' THEN f.numero END) AS comercial,
+    MAX(CASE WHEN f.tipo = 'L' THEN f.numero END) AS celular
+FROM pessoa p
+INNER JOIN fone f ON p.cod_pessoa = f.cod_pessoa
+GROUP BY p.nome_pessoa;
+
+
+
