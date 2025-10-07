@@ -1,17 +1,50 @@
 package com.utfpr.backend_empresa.repository;
 
-import com.utfpr.backend_empresa.entity.Departamento;
 import com.utfpr.backend_empresa.entity.Funcionario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import com.utfpr.backend_empresa.entity.Departamento;
+
 
 import java.util.List;
 import java.util.Optional;
 
-
+@Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
+
+    // Atividade JPA - Manipular dados e transações
+    @Procedure("sp_aumenta_salarios")
+    void procAumentaSalarios(Integer percentual);
+
+
+    @Query("SELECT f FROM Funcionario f " +
+            "WHERE f.departamento.nomeCategoria = :nomeDepartamento " +
+            "AND f.qtdDependentesFuncionario = 0")
+    List<Funcionario> findSemDependentesPorDepartamento(@Param("nomeDepartamento") String nomeDepartamento);
+
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+            value = "UPDATE funcionarios SET departamento_codigo = :novoId WHERE departamento_codigo = :antigoId",
+            nativeQuery = true
+    )
+    int atualizarDepartamentoPorId(@Param("antigoId") Long antigoId,
+                                   @Param("novoId")   Long novoId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM Funcionario f WHERE f.departamento.id = :deptoId")
+    int deleteByDepartamentoId(@Param("deptoId") Long deptoId);
+
+
+    @Query("SELECT f FROM Funcionario f WHERE f.departamento.id = :deptoId")
+    List<Funcionario> buscarPorDepartamentoId(@Param("deptoId") Long deptoId);
+
+    //Atividade JPA - CONSULTAS
 
     List<Funcionario> findByNomeFuncionarioContainingAndQtdDependentesFuncionario(String nomeFuncionario, Integer qtdDependentesFuncionario);
 
@@ -38,12 +71,6 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
 
     @Query(name = "Funcionario.findByNomeParcial", nativeQuery = true)
     List<Funcionario> buscarPorNomeParcialNamedNative(@Param("nome") String nome);
-
-
-
-
-
-
 
 
 

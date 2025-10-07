@@ -1,10 +1,10 @@
 package com.utfpr.backend_empresa.service;
 
 import com.utfpr.backend_empresa.entity.Funcionario;
+import com.utfpr.backend_empresa.repository.DepartamentoRepository;
 import com.utfpr.backend_empresa.repository.FuncionarioRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +15,34 @@ public class FuncionarioService {
 
     @Autowired
     private FuncionarioRepository repository;
+
+    @Autowired
+    private DepartamentoService departamentoService;
+
+    //Atividade JPA - Manipular Dados e Transações
+    public void aumentarSalarios(Integer percentual) {
+        repository.procAumentaSalarios(percentual);
+    }
+
+    public List<Funcionario> buscarFuncionariosSemDependentesPorDepartamento(String nomeDepartamento) {
+        return repository.findSemDependentesPorDepartamento(nomeDepartamento);
+    }
+
+    @Transactional
+    public int transferirFuncionarios(Long antigoDeptoId, Long novoDeptoId) {
+        return repository.atualizarDepartamentoPorId(antigoDeptoId, novoDeptoId);
+    }
+
+    @Transactional
+    public int excluirFuncionariosPorDepartamento(Long deptoId) {
+        return repository.deleteByDepartamentoId(deptoId);
+    }
+    public List<Funcionario> buscarPorDepartamentoId(Long codigoDepto) {
+        return repository.buscarPorDepartamentoId(codigoDepto);
+    }
+
+
+    //Atividade JPA - Consultas
 
     public List<Funcionario> buscarFuncionarioPorNomeEQuantidadeDependentes(String nome, int qtdDependentes) {
         return repository.findByNomeFuncionarioContainingAndQtdDependentesFuncionario(nome, qtdDependentes);
@@ -53,12 +81,10 @@ public class FuncionarioService {
     }
 
 
+    public List <Funcionario> buscarTodosFuncionarios() {
+        return repository.findAll();
 
-
-
-
-
-
+    }
 
 
 }

@@ -1,0 +1,72 @@
+package com.utfpr.prova_banco.service;
+
+import com.utfpr.prova_banco.entity.Cargo;
+import com.utfpr.prova_banco.entity.Funcionario;
+import com.utfpr.prova_banco.repository.DepartamentoRepository;
+import com.utfpr.prova_banco.repository.FuncionarioRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class DepartamentoService {
+
+    private final DepartamentoRepository departamentoRepository;
+    private final FuncionarioRepository funcionarioRepository;
+
+    public DepartamentoService(DepartamentoRepository departamentoRepository,
+                               FuncionarioRepository funcionarioRepository) {
+        this.departamentoRepository = departamentoRepository;
+        this.funcionarioRepository = funcionarioRepository;
+    }
+    //Atividade JPA - Manipular Dados e Transações
+
+    @Transactional
+    public Funcionario criarDeptoEAssociarFuncionarioExistente(String nomeDepto, Long funcionarioId) {
+        var depto = new Cargo();
+        depto.setNomeCategoria(nomeDepto);
+        depto = departamentoRepository.save(depto);
+
+
+        var func = funcionarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Funcionário não encontrado: " + funcionarioId));
+        func.setDepartamento(depto);
+
+
+        return funcionarioRepository.save(func);
+    }
+
+
+    @Transactional
+    public Funcionario criarDeptoECriarFuncionario(String nomeDepto,
+                                                   String nomeFuncionario,
+                                                   Integer qtdDependentes,
+                                                   Double salario,
+                                                   String cargo) {
+        var depto = new Cargo();
+        depto.setNomeCategoria(nomeDepto);
+        depto = departamentoRepository.save(depto);
+
+        var func = new Funcionario();
+        func.setNomeFuncionario(nomeFuncionario);
+        func.setQtdDependentesFuncionario(qtdDependentes);
+        func.setSalarioFuncionario(salario);
+        func.setCargoFuncionario(cargo);
+        func.setDepartamento(depto);
+
+        return funcionarioRepository.save(func);
+    }
+
+    //Atividade JPA - Consultas
+
+    public Cargo buscarPorId(Long id) {
+        return departamentoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Departamento não encontrado: " + id));
+    }
+
+    public Cargo buscarPrimeiroDepartamento() {
+        return departamentoRepository.findFirstByOrderByIdAsc().orElse(null);
+    }
+
+
+
+}

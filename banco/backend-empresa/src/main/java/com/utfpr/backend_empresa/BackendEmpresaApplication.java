@@ -22,13 +22,132 @@ public class BackendEmpresaApplication {
 	@Autowired
 	DepartamentoService departamentoService;
 
+
 	public static void main(String[] args) {
 		SpringApplication.run(BackendEmpresaApplication.class, args);
+
+
+
 	}
 
 	@Bean
 	public CommandLineRunner demo(DepartamentoService departamentoService, FuncionarioService funcionarioService) {
 		return (args) -> {
+
+			//Atividade JPA - Manipular Dados e Transações
+
+			log.info("==============================================================");
+			log.info("📦 Atividade JPA - Manipular Dados e Transações");
+			log.info("==============================================================");
+			log.info("Consulta 1: Listar todos os funcionários (antes de chamar stored procedure)");
+			for (Funcionario f : funcionarioService.buscarTodosFuncionarios())
+				log.info(f.toString());
+
+			log.info("==============================================================");
+			log.info("Chamar stored procedure");
+			funcionarioService.aumentarSalarios(10);
+
+			log.info("==============================================================");
+			log.info("Listar todos os funcionários apos a chamada do stored procedure");
+			for (Funcionario f : funcionarioService.buscarTodosFuncionarios())
+				log.info(f.toString());
+
+
+
+			String deptAlvo = "RECURSOS HUMANOS";
+			log.info("==============================================================");
+			log.info("Consulta 2: Funcionários do departamento '{}' sem dependentes", deptAlvo);
+			log.info("==============================================================");
+
+			var semDep = funcionarioService.buscarFuncionariosSemDependentesPorDepartamento(deptAlvo);
+
+			if (semDep.isEmpty()) {
+				log.info("Nenhum funcionário sem dependentes no departamento '{}'.", deptAlvo);
+			} else {
+				for (Funcionario f : semDep) {
+					log.info("Funcionário:");
+					log.info("    ▸ Nome: {}", f.getNomeFuncionario());
+					log.info("    ▸ Cargo: {}", f.getCargoFuncionario());
+					log.info("    ▸ Salário: R$ {}", f.getSalarioFuncionario());
+					log.info("    ▸ Departamento: {}", f.getDepartamento().getNomeCategoria());
+				}
+			}
+
+
+			Long deptoOrigem = 3L;
+			Long deptoDestino = 2L;
+
+			log.info("==============================================================");
+			log.info("Consulta 3: Transferir funcionários do departamento {} para {}", deptoOrigem, deptoDestino);
+			log.info("==============================================================");
+
+
+			log.info("Antes da transferência ({} -> {}):", deptoOrigem, deptoDestino);
+			funcionarioService.buscarTodosFuncionarios()
+					.forEach(f -> log.info("id={}, nome={}, dept={}",
+							f.getId(), f.getNomeFuncionario(), f.getDepartamento().getId()));
+
+
+			log.info("Transferindo funcionários do departamento {} -> {}", deptoOrigem, deptoDestino);
+			int movidos = funcionarioService.transferirFuncionarios(deptoOrigem, deptoDestino);
+			log.info("Total de funcionários transferidos: {}", movidos);
+
+
+			log.info("Depois da transferência ({} -> {}):", deptoOrigem, deptoDestino);
+			funcionarioService.buscarTodosFuncionarios()
+					.forEach(f -> log.info("id={}, nome={}, dept={}",
+							f.getId(), f.getNomeFuncionario(), f.getDepartamento().getId()));
+
+
+			Long deptoParaExcluir = 5L;
+
+			log.info("==============================================================");
+			log.info("Consulta 4: Excluir funcionários do departamento {}", deptoParaExcluir);
+			log.info("==============================================================");
+
+
+			log.info("Antes do delete (dept={}):", deptoParaExcluir);
+			funcionarioService.buscarTodosFuncionarios()
+					.forEach(f -> log.info("id={}, nome={}, dept={}",
+							f.getId(), f.getNomeFuncionario(), f.getDepartamento().getId()));
+
+
+			int removidos = funcionarioService.excluirFuncionariosPorDepartamento(deptoParaExcluir);
+			log.info("Total removidos: {}", removidos);
+
+			log.info("Depois do delete (dept={}):", deptoParaExcluir);
+			funcionarioService.buscarTodosFuncionarios()
+					.forEach(f -> log.info("id={}, nome={}, dept={}",
+							f.getId(), f.getNomeFuncionario(), f.getDepartamento().getId()));
+
+			String novoDepto = "INOVAÇÃO";
+			Long funcionarioAlvo = 1L;
+
+			log.info("==============================================================");
+			log.info("Consulta 5A: Criar departamento '{}' e associar ao funcionário id={}", novoDepto, funcionarioAlvo);
+			var funcAtualizado = departamentoService.criarDeptoEAssociarFuncionarioExistente(novoDepto, funcionarioAlvo);
+			log.info("OK: funcionario={}, deptoId={}, deptoNome={}",
+					funcAtualizado.getNomeFuncionario(),
+					funcAtualizado.getDepartamento().getId(),
+					funcAtualizado.getDepartamento().getNomeCategoria());
+
+			log.info("==============================================================");
+			log.info("Consulta 5B: Criar depto e funcionário novo em uma única transação");
+			var novoFunc = departamentoService.criarDeptoECriarFuncionario(
+					"EXPANSÃO", "Novo Colaborador", 0, 5500.0, "Analista Jr"
+			);
+			log.info("OK: novoFuncionarioId={}, nome={}, deptoId={}, deptoNome={}",
+					novoFunc.getId(),
+					novoFunc.getNomeFuncionario(),
+					novoFunc.getDepartamento().getId(),
+					novoFunc.getDepartamento().getNomeCategoria());
+
+
+
+			// Atividade JPA - Consultas
+			log.info("==============================================================");
+			log.info("📦 Atividade JPA - Consultas");
+			log.info("==============================================================");
 
 			// Consulta 1: Buscar funcionário por nome + quantidade de dependentes
 			String nomeBuscado = "Daniel";
@@ -229,6 +348,7 @@ public class BackendEmpresaApplication {
 					log.info("    ▸ Departamento: {}", f.getDepartamento().getNomeCategoria());
 				}
 			}
+
 
 		};
 	}

@@ -26,6 +26,7 @@ public class SpringDataConfig {
         ds.setUsername("root");
         ds.setPassword("mariadb");
         ds.setJdbcUrl("jdbc:mariadb://127.0.0.1:3307/empresa");
+        //ds.setJdbcUrl("jdbc:mariadb://localhost:3307/empresa");
         ds.setDriverClassName("org.mariadb.jdbc.Driver");
 
 
